@@ -1,14 +1,24 @@
+import 'package:customer_taxi_booking_app/constants/global_variables.dart';
+import 'package:customer_taxi_booking_app/features/admin/screens/admin_screen.dart';
 import 'package:customer_taxi_booking_app/features/auth/screens/auth_screen.dart';
+import 'package:customer_taxi_booking_app/features/home/screens/home_screen.dart';
 import 'package:customer_taxi_booking_app/firebase_options.dart';
+import 'package:customer_taxi_booking_app/providers/user_provider.dart';
+import 'package:customer_taxi_booking_app/router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(MultiProvider(providers: [
+    ChangeNotifierProvider(
+      create: (context) => UserProvider(),
+    ),
+  ], child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -17,12 +27,27 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Taxi Booking',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        scaffoldBackgroundColor: GlobalVariables.backgroundColor,
+        colorScheme: const ColorScheme.light(
+          primary: GlobalVariables.secondaryColor,
+        ),
+        appBarTheme: const AppBarTheme(
+          elevation: 0,
+          iconTheme: IconThemeData(
+            color: Colors.black,
+          ),
+        ),
         useMaterial3: true,
       ),
-      home: const AuthScreen(),
+      onGenerateRoute: (settings) => generateRooute(settings),
+      home: Provider.of<UserProvider>(context).user.token.isNotEmpty
+          ? Provider.of<UserProvider>(context).user.type == 'user'
+              ? const HomeScreen()
+              : const AdminScreen()
+          : const AuthScreen(),
     );
   }
 }

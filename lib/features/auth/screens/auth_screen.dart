@@ -52,10 +52,10 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void signInUser() {
-    // authSerVice.signInUser(
-    //     context: context,
-    //     email: _emailController.text,
-    //     password: _passwordController.text);
+    authSerVice.signInUser(
+        context: context,
+        email: _emailController.text,
+        password: _passwordController.text);
   }
 
   chooseImageFromGallery() async {
