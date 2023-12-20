@@ -3,6 +3,7 @@ import 'package:customer_taxi_booking_app/api/api_firebase.dart';
 import 'package:customer_taxi_booking_app/common/widgets/custom_button.dart';
 import 'package:customer_taxi_booking_app/common/widgets/custom_textdield.dart';
 import 'package:customer_taxi_booking_app/constants/global_variables.dart';
+import 'package:customer_taxi_booking_app/features/auth/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -22,9 +23,10 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   Auth _auth = Auth.signup;
   XFile? imageFile;
+  String? img;
   final _signUpFormKey = GlobalKey<FormState>();
   final _signInFormKey = GlobalKey<FormState>();
-  // final AuthSerVice authSerVice = AuthSerVice();
+  final AuthSerVice authSerVice = AuthSerVice();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
@@ -39,11 +41,14 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void signUpUser() {
-    // authSerVice.signUpUser(
-    //     context: context,
-    //     email: _emailController.text,
-    //     password: _passwordController.text,
-    //     name: _nameController.text);
+    authSerVice.signUpUser(
+      context: context,
+      email: _emailController.text,
+      password: _passwordController.text,
+      name: _nameController.text,
+      phone: _phoneController.text,
+      photo: APIs().image,
+    );
   }
 
   void signInUser() {
@@ -172,18 +177,18 @@ class _AuthScreenState extends State<AuthScreen> {
                         CustomButton(
                           text: 'Sign Up',
                           color: Colors.orange,
-                          onTap: () {
+                          onTap: () async {
                             if (_signUpFormKey.currentState!.validate()) {
                               signUpUser();
 
                               // api sign up firebase
-                              APIs().uploadImageToStorage(
-                                  imageFile,
-                                  '',
-                                  _emailController,
-                                  _passwordController,
-                                  _nameController,
-                                  _phoneController);
+                              // await APIs().uploadImageToStorage(
+                              //     imageFile,
+                              //     '',
+                              //     _emailController,
+                              //     _passwordController,
+                              //     _nameController,
+                              //     _phoneController);
                             }
                           },
                         )
@@ -233,13 +238,13 @@ class _AuthScreenState extends State<AuthScreen> {
                         CustomButton(
                           color: Colors.orange,
                           text: 'Sign In',
-                          onTap: () {
+                          onTap: () async {
                             if (_signInFormKey.currentState!.validate()) {
                               signInUser();
 
                               // sign in firebase
-                              APIs().signInUser(
-                                  _emailController, _passwordController);
+                              // await APIs().signInUser(
+                              //     _emailController, _passwordController);
                             }
                           },
                         )

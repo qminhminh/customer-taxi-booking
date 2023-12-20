@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:customer_taxi_booking_app/global/global_var.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class APIs {
+  String image = '';
   // Sign up user
   Future<void> uploadImageToStorage(
     imageFile,
@@ -24,7 +24,7 @@ class APIs {
     UploadTask uploadTask = referenceImage.putFile(File(imageFile!.path));
     TaskSnapshot snapshot = await uploadTask;
     urlOfUploadedImage = await snapshot.ref.getDownloadURL();
-
+    image = urlOfUploadedImage;
     registerNewDriver(emailController, passwordController, nameController,
         phoneController, urlOfUploadedImage);
   }
@@ -45,8 +45,8 @@ class APIs {
       print(e.toString());
     }))
         .user;
-    FirebaseMessaging firebaseCloudMessaging = FirebaseMessaging.instance;
-    String? deviceRecognitionToken = await firebaseCloudMessaging.getToken();
+    //FirebaseMessaging firebaseCloudMessaging = FirebaseMessaging.instance;
+    // String? deviceRecognitionToken = await firebaseCloudMessaging.getToken();
 
     DatabaseReference usersRef =
         FirebaseDatabase.instance.ref().child("users").child(userFirebase!.uid);
@@ -56,8 +56,8 @@ class APIs {
       "phone": phoneController.text.trim(),
       "id": userFirebase.uid,
       "blockStatus": "no",
-      "token": deviceRecognitionToken,
-      "photo": urlOfUploadedImage
+      // "token": deviceRecognitionToken,
+      // "photo": urlOfUploadedImage
     };
     usersRef.set(userDataMap);
   }
