@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:customer_taxi_booking_app/global/global_var.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class APIs {
@@ -24,8 +25,8 @@ class APIs {
     TaskSnapshot snapshot = await uploadTask;
     urlOfUploadedImage = await snapshot.ref.getDownloadURL();
 
-    registerNewDriver(
-        emailController, passwordController, nameController, phoneController);
+    registerNewDriver(emailController, passwordController, nameController,
+        phoneController, urlOfUploadedImage);
   }
 
   registerNewDriver(
@@ -33,6 +34,7 @@ class APIs {
     passwordController,
     nameController,
     phoneController,
+    urlOfUploadedImage,
   ) async {
     final User? userFirebase = (await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
@@ -43,6 +45,8 @@ class APIs {
       print(e.toString());
     }))
         .user;
+    FirebaseMessaging firebaseCloudMessaging = FirebaseMessaging.instance;
+    String? deviceRecognitionToken = await firebaseCloudMessaging.getToken();
 
     DatabaseReference usersRef =
         FirebaseDatabase.instance.ref().child("users").child(userFirebase!.uid);
@@ -52,6 +56,8 @@ class APIs {
       "phone": phoneController.text.trim(),
       "id": userFirebase.uid,
       "blockStatus": "no",
+      "token": deviceRecognitionToken,
+      "photo": urlOfUploadedImage
     };
     usersRef.set(userDataMap);
   }
