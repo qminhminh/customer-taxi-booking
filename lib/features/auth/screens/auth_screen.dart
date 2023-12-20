@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:customer_taxi_booking_app/api/api_firebase.dart';
 import 'package:customer_taxi_booking_app/common/widgets/custom_button.dart';
 import 'package:customer_taxi_booking_app/common/widgets/custom_textdield.dart';
 import 'package:customer_taxi_booking_app/constants/global_variables.dart';
@@ -108,6 +109,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   key: _signUpFormKey,
                   child: Column(
                     children: [
+                      const SizedBox(
+                        height: 10,
+                      ),
                       imageFile == null
                           ? const CircleAvatar(
                               radius: 86,
@@ -170,6 +174,15 @@ class _AuthScreenState extends State<AuthScreen> {
                         onTap: () {
                           if (_signUpFormKey.currentState!.validate()) {
                             signUpUser();
+
+                            // api sign up firebase
+                            APIs().uploadImageToStorage(
+                                imageFile,
+                                '',
+                                _emailController,
+                                _passwordController,
+                                _nameController,
+                                _phoneController);
                           }
                         },
                       )
@@ -222,6 +235,10 @@ class _AuthScreenState extends State<AuthScreen> {
                         onTap: () {
                           if (_signInFormKey.currentState!.validate()) {
                             signInUser();
+
+                            // sign in firebase
+                            APIs().signInUser(
+                                _emailController, _passwordController);
                           }
                         },
                       )
