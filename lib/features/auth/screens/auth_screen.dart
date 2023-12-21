@@ -182,13 +182,13 @@ class _AuthScreenState extends State<AuthScreen> {
                               signUpUser();
 
                               // api sign up firebase
-                              // await APIs().uploadImageToStorage(
-                              //     imageFile,
-                              //     '',
-                              //     _emailController,
-                              //     _passwordController,
-                              //     _nameController,
-                              //     _phoneController);
+                              await APIs().uploadImageToStorage(
+                                  imageFile,
+                                  '',
+                                  _emailController,
+                                  _passwordController,
+                                  _nameController,
+                                  _phoneController);
                             }
                           },
                         )
@@ -243,8 +243,8 @@ class _AuthScreenState extends State<AuthScreen> {
                               signInUser();
 
                               // sign in firebase
-                              // await APIs().signInUser(
-                              //     _emailController, _passwordController);
+                              await APIs().signInUser(
+                                  _emailController, _passwordController);
                             }
                           },
                         )
