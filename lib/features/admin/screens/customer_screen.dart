@@ -57,16 +57,13 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     onTap: () {},
                     child: Card(
                       child: ListTile(
-                        leading: listdata.photo == null
+                        leading: listdata.photo == ''
                             ? const CircleAvatar(
-                                radius: 86,
                                 backgroundImage:
                                     AssetImage("assets/images/avatar.png"),
                               )
-                            : Image.network(
-                                listdata.photo,
-                                fit: BoxFit.fitHeight,
-                              ),
+                            : Image.network(listdata.photo,
+                                width: 20, height: 20),
                         title: Text(
                           listdata.name,
                           style: TextStyle(
