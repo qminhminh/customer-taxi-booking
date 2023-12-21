@@ -1,8 +1,9 @@
-// ignore_for_file: unnecessary_import, unused_local_variable, sized_box_for_whitespace, prefer_const_constructors, use_build_context_synchronously
+// ignore_for_file: unnecessary_import, unused_local_variable, sized_box_for_whitespace, prefer_const_constructors, use_build_context_synchronously, prefer_interpolation_to_compose_strings, avoid_print
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:customer_taxi_booking_app/appInfo/app_info.dart';
 import 'package:customer_taxi_booking_app/features/auth/services/auth_service.dart';
 import 'package:customer_taxi_booking_app/features/search/screen/search_destination_page.dart';
 import 'package:customer_taxi_booking_app/global/global_var.dart';
@@ -292,11 +293,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (c) => SearchDestinationPage()));
+                    onPressed: () async {
+                      var responseFromSearchPage = await Navigator.pushNamed(
+                        context,
+                        SearchDestinationPage.reouteName,
+                      );
+
+                      if (responseFromSearchPage == "placeSelected") {
+                        String dropOffLocation =
+                            Provider.of<AppInfo>(context, listen: false)
+                                    .dropOffLocation!
+                                    .placeName ??
+                                "";
+                        print("dropOffLocation = " + dropOffLocation);
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.grey,

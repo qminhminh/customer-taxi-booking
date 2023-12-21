@@ -45,7 +45,7 @@ class CommonMethods {
     }
   }
 
-  ///Reverse GeoCoding
+  ///Reverse GeoCoding get curent positon forr me uéing api gg
   static Future<String> convertGeoGraphicCoOrdinatesIntoHumanReadableAddress(
       Position position, BuildContext context) async {
     String humanReadableAddress = "";

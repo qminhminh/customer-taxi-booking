@@ -1,4 +1,10 @@
+// ignore_for_file: prefer_is_empty
+
 import 'package:customer_taxi_booking_app/appInfo/app_info.dart';
+import 'package:customer_taxi_booking_app/global/global_var.dart';
+import 'package:customer_taxi_booking_app/methods/common_methods.dart';
+import 'package:customer_taxi_booking_app/models/prediction_model.dart';
+import 'package:customer_taxi_booking_app/widgets/prediction_place_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,6 +20,34 @@ class _SearchDestinationPageState extends State<SearchDestinationPage> {
   TextEditingController pickUpTextEditingController = TextEditingController();
   TextEditingController destinationTextEditingController =
       TextEditingController();
+  List<PredictionModel> dropOffPredictionsPlacesList = [];
+
+  ///Places API - Place AutoComplete
+  searchLocation(String locationName) async {
+    if (locationName.length > 1) {
+      String apiPlacesUrl =
+          "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$locationName&key=$googleMapKey&components=country:vn";
+
+      var responseFromPlacesAPI =
+          await CommonMethods.sendRequestToAPI(apiPlacesUrl);
+
+      if (responseFromPlacesAPI == "error") {
+        return;
+      }
+
+      if (responseFromPlacesAPI["status"] == "OK") {
+        var predictionResultInJson = responseFromPlacesAPI["predictions"];
+        var predictionsList = (predictionResultInJson as List)
+            .map((eachPlacePrediction) =>
+                PredictionModel.fromJson(eachPlacePrediction))
+            .toList();
+
+        setState(() {
+          dropOffPredictionsPlacesList = predictionsList;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +174,9 @@ class _SearchDestinationPageState extends State<SearchDestinationPage> {
                                 padding: const EdgeInsets.all(3),
                                 child: TextField(
                                   controller: destinationTextEditingController,
+                                  onChanged: (inputText) {
+                                    searchLocation(inputText);
+                                  },
                                   decoration: const InputDecoration(
                                       hintText: "Destination Address",
                                       fillColor: Colors.white12,
@@ -159,6 +196,33 @@ class _SearchDestinationPageState extends State<SearchDestinationPage> {
                 ),
               ),
             ),
+
+            //display prediction results for destination place
+            (dropOffPredictionsPlacesList.length > 0)
+                ? Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(0),
+                      itemBuilder: (context, index) {
+                        return Card(
+                          elevation: 3,
+                          child: PredictionPlaceUI(
+                            predictedPlaceData:
+                                dropOffPredictionsPlacesList[index],
+                          ),
+                        );
+                      },
+                      separatorBuilder: (BuildContext context, int index) =>
+                          const SizedBox(
+                        height: 2,
+                      ),
+                      itemCount: dropOffPredictionsPlacesList.length,
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
+                    ),
+                  )
+                : Container(),
           ],
         ),
       ),
