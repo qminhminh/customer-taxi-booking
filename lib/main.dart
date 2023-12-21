@@ -1,6 +1,9 @@
+// ignore_for_file: unused_element
+
 import 'package:customer_taxi_booking_app/constants/global_variables.dart';
 import 'package:customer_taxi_booking_app/features/admin/screens/admin_screen.dart';
 import 'package:customer_taxi_booking_app/features/auth/screens/auth_screen.dart';
+import 'package:customer_taxi_booking_app/features/auth/services/auth_service.dart';
 import 'package:customer_taxi_booking_app/features/home/screens/home_screen.dart';
 import 'package:customer_taxi_booking_app/firebase_options.dart';
 import 'package:customer_taxi_booking_app/providers/user_provider.dart';
@@ -21,8 +24,21 @@ void main() async {
   ], child: const MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final AuthSerVice authSerVice = AuthSerVice();
+
+  @override
+  void initState() {
+    super.initState();
+    authSerVice.getUserData(context);
+  }
 
   @override
   Widget build(BuildContext context) {
