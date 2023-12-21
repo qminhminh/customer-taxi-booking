@@ -2,7 +2,7 @@ import 'package:customer_taxi_booking_app/models/user.dart';
 import 'package:flutter/widgets.dart';
 
 class UserProvider extends ChangeNotifier {
-  User _user = User(
+  UserCustomer _user = UserCustomer(
     id: '',
     blockStatus: '',
     email: '',
@@ -14,14 +14,14 @@ class UserProvider extends ChangeNotifier {
     token: '',
   );
 
-  User get user => _user;
+  UserCustomer get user => _user;
 
   void setUser(String user) {
-    _user = User.fromJson(user);
+    _user = UserCustomer.fromJson(user);
     notifyListeners();
   }
 
-  void setUserFromModel(User user) {
+  void setUserFromModel(UserCustomer user) {
     _user = user;
     notifyListeners();
   }

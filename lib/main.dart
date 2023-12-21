@@ -1,7 +1,7 @@
 // ignore_for_file: unused_element
 
 import 'package:customer_taxi_booking_app/constants/global_variables.dart';
-import 'package:customer_taxi_booking_app/features/admin/screens/admin_screen.dart';
+import 'package:customer_taxi_booking_app/features/admin/bottombar/bottom_bar.dart';
 import 'package:customer_taxi_booking_app/features/auth/screens/auth_screen.dart';
 import 'package:customer_taxi_booking_app/features/auth/services/auth_service.dart';
 import 'package:customer_taxi_booking_app/features/home/screens/home_screen.dart';
@@ -82,7 +82,7 @@ class _MyAppState extends State<MyApp> {
       home: Provider.of<UserProvider>(context).user.token.isNotEmpty
           ? Provider.of<UserProvider>(context).user.type == 'user'
               ? const HomeScreen()
-              : const AdminScreen()
+              : const BottomBar()
           : const AuthScreen(),
     );
   }

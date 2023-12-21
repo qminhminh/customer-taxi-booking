@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-class User {
+class UserCustomer {
   final String id;
   final String blockStatus;
   final String email;
@@ -11,7 +11,7 @@ class User {
   final String type;
   final String token;
 
-  User({
+  UserCustomer({
     required this.id,
     required this.blockStatus,
     required this.email,
@@ -37,8 +37,8 @@ class User {
     };
   }
 
-  factory User.fromMap(Map<String, dynamic> map) {
-    return User(
+  factory UserCustomer.fromMap(Map<String, dynamic> map) {
+    return UserCustomer(
       id: map['_id'] ?? '',
       blockStatus: map['blockStatus'] ?? '',
       email: map['email'] ?? '',
@@ -53,9 +53,10 @@ class User {
 
   String toJson() => json.encode(toMap());
 
-  factory User.fromJson(String source) => User.fromMap(json.decode(source));
+  factory UserCustomer.fromJson(String source) =>
+      UserCustomer.fromMap(json.decode(source));
 
-  User copyWith({
+  UserCustomer copyWith({
     String? id,
     String? blockStatus,
     String? email,
@@ -66,7 +67,7 @@ class User {
     String? type,
     String? token,
   }) {
-    return User(
+    return UserCustomer(
       id: id ?? this.id,
       blockStatus: blockStatus ?? this.blockStatus,
       email: email ?? this.email,

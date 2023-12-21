@@ -22,7 +22,7 @@ class AuthSerVice {
     required String photo,
   }) async {
     try {
-      User user = User(
+      UserCustomer user = UserCustomer(
         id: '',
         blockStatus: '',
         email: email,
