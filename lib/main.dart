@@ -10,6 +10,7 @@ import 'package:customer_taxi_booking_app/providers/user_provider.dart';
 import 'package:customer_taxi_booking_app/router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -17,6 +18,25 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await Permission.locationWhenInUse.isDenied.then((valueOfPermission) {
+    if (valueOfPermission) {
+      Permission.locationWhenInUse.request();
+    }
+  });
+
+  await Permission.notification.isDenied.then((valueOfPermission) {
+    if (valueOfPermission) {
+      Permission.notification.request();
+    }
+  });
+
+  await Permission.phone.isDenied.then((valueOfPermission) {
+    if (valueOfPermission) {
+      Permission.phone.request();
+    }
+  });
+
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(
       create: (context) => UserProvider(),
