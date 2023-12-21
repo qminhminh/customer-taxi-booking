@@ -62,8 +62,17 @@ class _DriverScreenState extends State<DriverScreen> {
                                 backgroundImage:
                                     AssetImage("assets/images/avatar.png"),
                               )
-                            : Image.network(listdata.photo,
-                                width: 20, height: 20),
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                    10.0), // Điều này làm tròn góc ảnh
+                                child: Image.network(
+                                  listdata.photo,
+                                  width: 20,
+                                  height: 20,
+                                  fit: BoxFit
+                                      .cover, // Đảm bảo ảnh không bị méo khi thu nhỏ
+                                ),
+                              ),
                         title: Text(
                           listdata.name,
                           style: TextStyle(
