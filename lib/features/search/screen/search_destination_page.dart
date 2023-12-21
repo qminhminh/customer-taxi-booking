@@ -1,4 +1,6 @@
+import 'package:customer_taxi_booking_app/appInfo/app_info.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SearchDestinationPage extends StatefulWidget {
   static const String reouteName = '/search';
@@ -15,6 +17,12 @@ class _SearchDestinationPageState extends State<SearchDestinationPage> {
 
   @override
   Widget build(BuildContext context) {
+    String userAddress = Provider.of<AppInfo>(context, listen: false)
+            .pickUpLocation!
+            .humanReadableAddress ??
+        "";
+    pickUpTextEditingController.text = userAddress;
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(

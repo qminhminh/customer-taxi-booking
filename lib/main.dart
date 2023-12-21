@@ -1,5 +1,6 @@
 // ignore_for_file: unused_element
 
+import 'package:customer_taxi_booking_app/appInfo/app_info.dart';
 import 'package:customer_taxi_booking_app/constants/global_variables.dart';
 import 'package:customer_taxi_booking_app/features/admin/bottombar/bottom_bar.dart';
 import 'package:customer_taxi_booking_app/features/auth/screens/auth_screen.dart';
@@ -40,6 +41,9 @@ void main() async {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(
       create: (context) => UserProvider(),
+    ),
+    ChangeNotifierProvider(
+      create: (context) => AppInfo(),
     ),
   ], child: const MyApp()));
 }

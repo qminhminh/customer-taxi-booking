@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_import, unused_local_variable, sized_box_for_whitespace, prefer_const_constructors
+// ignore_for_file: unnecessary_import, unused_local_variable, sized_box_for_whitespace, prefer_const_constructors, use_build_context_synchronously
 
 import 'dart:async';
 import 'dart:convert';
@@ -66,6 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
     controllerGoogleMap!
         .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
+    // get address for api gg
+    await CommonMethods.convertGeoGraphicCoOrdinatesIntoHumanReadableAddress(
+        currentPositionOfUser!, context);
     await getUserInfoAndCheckBlockStatus();
   }
 
@@ -228,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ///=================================================google map==============
           GoogleMap(
             padding: EdgeInsets.only(top: 26, bottom: bottomMapPadding),
-            mapType: MapType.normal,
+            mapType: MapType.hybrid,
             myLocationEnabled: true,
             initialCameraPosition: googlePlexInitialPosition,
             onMapCreated: (GoogleMapController mapController) {
