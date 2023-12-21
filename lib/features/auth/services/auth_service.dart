@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:customer_taxi_booking_app/constants/error_handing.dart';
 import 'package:customer_taxi_booking_app/constants/global_variables.dart';
 import 'package:customer_taxi_booking_app/constants/utils.dart';
+import 'package:customer_taxi_booking_app/features/auth/screens/auth_screen.dart';
 import 'package:customer_taxi_booking_app/features/home/screens/home_screen.dart';
 import 'package:customer_taxi_booking_app/models/user.dart';
 import 'package:customer_taxi_booking_app/providers/user_provider.dart';
@@ -123,11 +124,24 @@ class AuthSerVice {
 
         var userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.setUser(userRes.body);
-
-        print(userRes.body);
-        print(userProvider);
-        print(response);
       }
+    } catch (e) {
+      showSnackBar(context, e.toString());
+    }
+  }
+
+  // logout
+  void logOut(BuildContext context) async {
+    try {
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      await sharedPreferences.setString('x-auth-token', '');
+
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AuthScreen.routeName,
+        (route) => false,
+      );
     } catch (e) {
       showSnackBar(context, e.toString());
     }

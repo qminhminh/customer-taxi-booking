@@ -4,6 +4,7 @@ import 'package:customer_taxi_booking_app/features/admin/screens/driver_screen.d
 import 'package:customer_taxi_booking_app/features/admin/screens/trip_screen.dart';
 import 'package:customer_taxi_booking_app/features/auth/screens/auth_screen.dart';
 import 'package:customer_taxi_booking_app/features/home/screens/home_screen.dart';
+import 'package:customer_taxi_booking_app/features/search/screen/search_destination_page.dart';
 import 'package:flutter/material.dart';
 
 Route<dynamic> generateRooute(RouteSettings routeSettings) {
@@ -31,6 +32,11 @@ Route<dynamic> generateRooute(RouteSettings routeSettings) {
     case TripScreen.routeName:
       return MaterialPageRoute(
           settings: routeSettings, builder: (_) => const TripScreen());
+
+    case SearchDestinationPage.reouteName:
+      return MaterialPageRoute(
+          settings: routeSettings,
+          builder: (_) => const SearchDestinationPage());
     default:
       return MaterialPageRoute(
           settings: routeSettings,
