@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_import, unused_local_variable, sized_box_for_whitespace, prefer_const_constructors, use_build_context_synchronously, prefer_interpolation_to_compose_strings, avoid_print
+// ignore_for_file: unnecessary_import, unused_local_variable, sized_box_for_whitespace, prefer_const_constructors, use_build_context_synchronously, prefer_interpolation_to_compose_strings, avoid_print, avoid_function_literals_in_foreach_calls
 
 import 'dart:async';
 import 'dart:convert';
@@ -15,6 +15,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +40,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final AuthSerVice authSerVice = AuthSerVice();
   double rideDetailsContainerHeight = 0;
   DirectionDetails? tripDirectionDetailsInfo;
+  List<LatLng> polylineCoOrdinates = [];
+  Set<Polyline> polylineSet = {};
+  Set<Marker> markerSet = {};
+  Set<Circle> circleSet = {};
 
 // style map
   void updateMapTheme(GoogleMapController controller) {
@@ -142,6 +147,120 @@ class _HomeScreenState extends State<HomeScreen> {
             dropOffDestinationGeoGraphicCoOrdinates);
     setState(() {
       tripDirectionDetailsInfo = detailsFromDirectionAPI;
+    });
+
+    Navigator.pop(context);
+
+    //draw route from pickup to dropOffDestination
+    PolylinePoints pointsPolyline = PolylinePoints();
+    List<PointLatLng> latLngPointsFromPickUpToDestination =
+        pointsPolyline.decodePolyline(tripDirectionDetailsInfo!.encodedPoints!);
+
+    polylineCoOrdinates.clear();
+    if (latLngPointsFromPickUpToDestination.isNotEmpty) {
+      latLngPointsFromPickUpToDestination.forEach((PointLatLng latLngPoint) {
+        polylineCoOrdinates
+            .add(LatLng(latLngPoint.latitude, latLngPoint.longitude));
+      });
+    }
+
+    polylineSet.clear();
+    setState(() {
+      Polyline polyline = Polyline(
+        polylineId: const PolylineId("polylineID"),
+        color: Colors.pink,
+        points: polylineCoOrdinates,
+        jointType: JointType.round,
+        width: 4,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
+        geodesic: true,
+      );
+
+      polylineSet.add(polyline);
+    });
+
+    //fit the polyline into the map
+    LatLngBounds boundsLatLng;
+    if (pickupGeoGraphicCoOrdinates.latitude >
+            dropOffDestinationGeoGraphicCoOrdinates.latitude &&
+        pickupGeoGraphicCoOrdinates.longitude >
+            dropOffDestinationGeoGraphicCoOrdinates.longitude) {
+      boundsLatLng = LatLngBounds(
+        southwest: dropOffDestinationGeoGraphicCoOrdinates,
+        northeast: pickupGeoGraphicCoOrdinates,
+      );
+    } else if (pickupGeoGraphicCoOrdinates.longitude >
+        dropOffDestinationGeoGraphicCoOrdinates.longitude) {
+      boundsLatLng = LatLngBounds(
+        southwest: LatLng(pickupGeoGraphicCoOrdinates.latitude,
+            dropOffDestinationGeoGraphicCoOrdinates.longitude),
+        northeast: LatLng(dropOffDestinationGeoGraphicCoOrdinates.latitude,
+            pickupGeoGraphicCoOrdinates.longitude),
+      );
+    } else if (pickupGeoGraphicCoOrdinates.latitude >
+        dropOffDestinationGeoGraphicCoOrdinates.latitude) {
+      boundsLatLng = LatLngBounds(
+        southwest: LatLng(dropOffDestinationGeoGraphicCoOrdinates.latitude,
+            pickupGeoGraphicCoOrdinates.longitude),
+        northeast: LatLng(pickupGeoGraphicCoOrdinates.latitude,
+            dropOffDestinationGeoGraphicCoOrdinates.longitude),
+      );
+    } else {
+      boundsLatLng = LatLngBounds(
+        southwest: pickupGeoGraphicCoOrdinates,
+        northeast: dropOffDestinationGeoGraphicCoOrdinates,
+      );
+    }
+
+    controllerGoogleMap!
+        .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 72));
+
+    //add markers to pickup and dropOffDestination points
+    Marker pickUpPointMarker = Marker(
+      markerId: const MarkerId("pickUpPointMarkerID"),
+      position: pickupGeoGraphicCoOrdinates,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      infoWindow: InfoWindow(
+          title: pickUpLocation.placeName, snippet: "Pickup Location"),
+    );
+
+    Marker dropOffDestinationPointMarker = Marker(
+      markerId: const MarkerId("dropOffDestinationPointMarkerID"),
+      position: dropOffDestinationGeoGraphicCoOrdinates,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+      infoWindow: InfoWindow(
+          title: dropOffDestinationLocation.placeName,
+          snippet: "Destination Location"),
+    );
+
+    setState(() {
+      markerSet.add(pickUpPointMarker);
+      markerSet.add(dropOffDestinationPointMarker);
+    });
+
+    //add circles to pickup and dropOffDestination points
+    Circle pickUpPointCircle = Circle(
+      circleId: const CircleId('pickupCircleID'),
+      strokeColor: Colors.blue,
+      strokeWidth: 4,
+      radius: 14,
+      center: pickupGeoGraphicCoOrdinates,
+      fillColor: Colors.pink,
+    );
+
+    Circle dropOffDestinationPointCircle = Circle(
+      circleId: const CircleId('dropOffDestinationCircleID'),
+      strokeColor: Colors.blue,
+      strokeWidth: 4,
+      radius: 14,
+      center: dropOffDestinationGeoGraphicCoOrdinates,
+      fillColor: Colors.pink,
+    );
+
+    setState(() {
+      circleSet.add(pickUpPointCircle);
+      circleSet.add(dropOffDestinationPointCircle);
     });
   }
 
@@ -278,6 +397,9 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: EdgeInsets.only(top: 26, bottom: bottomMapPadding),
             mapType: MapType.hybrid,
             myLocationEnabled: true,
+            polylines: polylineSet,
+            markers: markerSet,
+            circles: circleSet,
             initialCameraPosition: googlePlexInitialPosition,
             onMapCreated: (GoogleMapController mapController) {
               controllerGoogleMap = mapController;
