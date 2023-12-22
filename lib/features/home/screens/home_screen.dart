@@ -8,7 +8,9 @@ import 'package:customer_taxi_booking_app/features/auth/services/auth_service.da
 import 'package:customer_taxi_booking_app/features/search/screen/search_destination_page.dart';
 import 'package:customer_taxi_booking_app/global/global_var.dart';
 import 'package:customer_taxi_booking_app/methods/common_methods.dart';
+import 'package:customer_taxi_booking_app/models/direction_details.dart';
 import 'package:customer_taxi_booking_app/providers/user_provider.dart';
+import 'package:customer_taxi_booking_app/widgets/loading_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
   CommonMethods cMethods = CommonMethods();
   double searchContainerHeight = 276;
   final AuthSerVice authSerVice = AuthSerVice();
+  double rideDetailsContainerHeight = 0;
+  DirectionDetails? tripDirectionDetailsInfo;
 
 // style map
   void updateMapTheme(GoogleMapController controller) {
@@ -98,6 +102,46 @@ class _HomeScreenState extends State<HomeScreen> {
         FirebaseAuth.instance.signOut();
         authSerVice.logOut(context);
       }
+    });
+  }
+
+  displayUserRideDetailsContainer() async {
+    ///Directions API
+    await retrieveDirectionDetails();
+
+    setState(() {
+      searchContainerHeight = 0;
+      bottomMapPadding = 240;
+      rideDetailsContainerHeight = 242;
+    });
+  }
+
+  retrieveDirectionDetails() async {
+    var pickUpLocation =
+        Provider.of<AppInfo>(context, listen: false).pickUpLocation;
+    var dropOffDestinationLocation =
+        Provider.of<AppInfo>(context, listen: false).dropOffLocation;
+
+    var pickupGeoGraphicCoOrdinates = LatLng(
+        pickUpLocation!.latitudePosition!, pickUpLocation.longitudePosition!);
+    var dropOffDestinationGeoGraphicCoOrdinates = LatLng(
+        dropOffDestinationLocation!.latitudePosition!,
+        dropOffDestinationLocation.longitudePosition!);
+
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) =>
+          LoadingDialog(messageText: "Getting direction..."),
+    );
+
+    ///Directions API
+    var detailsFromDirectionAPI =
+        await CommonMethods.getDirectionDetailsFromAPI(
+            pickupGeoGraphicCoOrdinates,
+            dropOffDestinationGeoGraphicCoOrdinates);
+    setState(() {
+      tripDirectionDetailsInfo = detailsFromDirectionAPI;
     });
   }
 
@@ -300,12 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
 
                       if (responseFromSearchPage == "placeSelected") {
-                        String dropOffLocation =
-                            Provider.of<AppInfo>(context, listen: false)
-                                    .dropOffLocation!
-                                    .placeName ??
-                                "";
-                        print("dropOffLocation = " + dropOffLocation);
+                        displayUserRideDetailsContainer();
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -343,6 +382,109 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+
+          ///ride details container
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              height: rideDetailsContainerHeight,
+              decoration: const BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(15)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white12,
+                    blurRadius: 15.0,
+                    spreadRadius: 0.5,
+                    offset: Offset(.7, .7),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, right: 16),
+                      child: SizedBox(
+                        height: 190,
+                        child: Card(
+                          elevation: 10,
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * .70,
+                            color: Colors.black45,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 8, bottom: 8),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 8, right: 8),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          (tripDirectionDetailsInfo != null)
+                                              ? tripDirectionDetailsInfo!
+                                                  .distanceTextString!
+                                              : "",
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white70,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          (tripDirectionDetailsInfo != null)
+                                              ? tripDirectionDetailsInfo!
+                                                  .durationTextString!
+                                              : "",
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white70,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: Image.asset(
+                                      "assets/images/uberexec.png",
+                                      height: 122,
+                                      width: 122,
+                                    ),
+                                  ),
+                                  Text(
+                                    (tripDirectionDetailsInfo != null)
+                                        ? "\$ ${(cMethods.calculateFareAmount(tripDirectionDetailsInfo!)).toString()}"
+                                        : "",
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.white70,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
