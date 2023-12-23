@@ -11,6 +11,7 @@ import 'package:customer_taxi_booking_app/global/global_var.dart';
 import 'package:customer_taxi_booking_app/global/trip_var.dart';
 import 'package:customer_taxi_booking_app/methods/common_methods.dart';
 import 'package:customer_taxi_booking_app/methods/manage_drivers_methods.dart';
+import 'package:customer_taxi_booking_app/methods/push_notification_service.dart';
 import 'package:customer_taxi_booking_app/models/direction_details.dart';
 import 'package:customer_taxi_booking_app/models/online_nearby_drivers.dart';
 import 'package:customer_taxi_booking_app/providers/user_provider.dart';
@@ -26,6 +27,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:restart_app/restart_app.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String reouteName = '/home';
@@ -318,6 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
       carDetailsDriver = "";
       tripStatusDisplay = 'Driver is Arriving';
     });
+
+    Restart.restartApp();
   }
 
   cancelRideRequest() {
@@ -516,8 +520,42 @@ class _HomeScreenState extends State<HomeScreen> {
     var currentDriver = availableNearbyOnlineDriversList![0];
 
     //send notification to this currentDriver
+    sendNotificationToDriver(currentDriver);
 
     availableNearbyOnlineDriversList!.removeAt(0);
+  }
+
+  sendNotificationToDriver(OnlineNearbyDrivers currentDriver) {
+    //update driver's newTripStatus - assign tripID to current driver
+    DatabaseReference currentDriverRef = FirebaseDatabase.instance
+        .ref()
+        .child("drivers")
+        .child(currentDriver.uidDriver.toString())
+        .child("newTripStatus");
+
+    currentDriverRef.set(tripRequestRef!.key);
+
+    //get current driver device recognition token
+    DatabaseReference tokenOfCurrentDriverRef = FirebaseDatabase.instance
+        .ref()
+        .child("drivers")
+        .child(currentDriver.uidDriver.toString())
+        .child("deviceToken");
+
+    tokenOfCurrentDriverRef.once().then((dataSnapshot) {
+      if (dataSnapshot.snapshot.value != null) {
+        String deviceToken = dataSnapshot.snapshot.value.toString();
+        // homeService.updateNewStatus(
+        //     context: context,
+        //     driverid: deviceToken,
+        //     trip: tripRequestRef!.key.toString());
+        //send notification
+        PushNotificationService.sendNotificationToSelectedDriver(
+            deviceToken, context, tripRequestRef!.key.toString());
+      } else {
+        return;
+      }
+    });
   }
 
 //============================================================================================

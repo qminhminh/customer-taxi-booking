@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, avoid_print
 
 import 'dart:convert';
-
 import 'package:customer_taxi_booking_app/constants/error_handing.dart';
 import 'package:customer_taxi_booking_app/constants/global_variables.dart';
 import 'package:customer_taxi_booking_app/constants/utils.dart';
@@ -94,6 +93,36 @@ class HomeService {
           context: context,
           onSuccess: () {
             showSnackBar(context, "Add Trip Request Success");
+          });
+    } catch (e) {
+      showSnackBar(context, e.toString());
+    }
+  }
+
+  void updateNewStatus({
+    required BuildContext context,
+    required String driverid,
+    required String trip,
+  }) async {
+    try {
+      final userprovider = Provider.of<UserProvider>(context, listen: false);
+      http.Response res = await http.put(
+        Uri.parse('$uri/api/users/update-status/drivers'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': userprovider.user.token
+        },
+        body: jsonEncode({
+          'driverid': driverid,
+          'trip': trip,
+        }),
+      );
+
+      httpErrorHandle(
+          response: res,
+          context: context,
+          onSuccess: () {
+            showSnackBar(context, "Update new stutus");
           });
     } catch (e) {
       showSnackBar(context, e.toString());
