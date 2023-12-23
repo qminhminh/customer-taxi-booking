@@ -1,21 +1,25 @@
-// ignore_for_file: unnecessary_import, unused_local_variable, sized_box_for_whitespace, prefer_const_constructors, use_build_context_synchronously, prefer_interpolation_to_compose_strings, avoid_print, avoid_function_literals_in_foreach_calls
+// ignore_for_file: unnecessary_import, unused_local_variable, sized_box_for_whitespace, prefer_const_constructors, use_build_context_synchronously, prefer_interpolation_to_compose_strings, avoid_print, avoid_function_literals_in_foreach_calls, prefer_collection_literals, unnecessary_null_comparison
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:customer_taxi_booking_app/appInfo/app_info.dart';
 import 'package:customer_taxi_booking_app/features/auth/services/auth_service.dart';
+import 'package:customer_taxi_booking_app/features/home/services/home_service.dart';
 import 'package:customer_taxi_booking_app/features/search/screen/search_destination_page.dart';
 import 'package:customer_taxi_booking_app/global/global_var.dart';
 import 'package:customer_taxi_booking_app/global/trip_var.dart';
 import 'package:customer_taxi_booking_app/methods/common_methods.dart';
+import 'package:customer_taxi_booking_app/methods/manage_drivers_methods.dart';
 import 'package:customer_taxi_booking_app/models/direction_details.dart';
+import 'package:customer_taxi_booking_app/models/online_nearby_drivers.dart';
 import 'package:customer_taxi_booking_app/providers/user_provider.dart';
 import 'package:customer_taxi_booking_app/widgets/loading_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -50,10 +54,27 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<Circle> circleSet = {};
   bool isDrawerOpened = true;
   String stateOfApp = "normal";
+  bool nearbyOnlineDriversKeysLoaded = false;
+  BitmapDescriptor? carIconNearbyDriver;
+  final HomeService homeService = HomeService();
+  late Timer _timer;
+  bool time = false;
+
+  makeDriverNearbyCarIcon() {
+    if (carIconNearbyDriver == null) {
+      ImageConfiguration configuration =
+          createLocalImageConfiguration(context, size: Size(0.5, 0.5));
+      BitmapDescriptor.fromAssetImage(
+              configuration, "assets/images/tracking.png")
+          .then((iconImage) {
+        carIconNearbyDriver = iconImage;
+      });
+    }
+  }
 
 // style map
   void updateMapTheme(GoogleMapController controller) {
-    getJsonFileFromThemes("themes/night_style.json")
+    getJsonFileFromThemes("themes/dark_style.json")
         .then((value) => setGoogleMapStyle(value, controller));
   }
 
@@ -86,6 +107,8 @@ class _HomeScreenState extends State<HomeScreen> {
     await CommonMethods.convertGeoGraphicCoOrdinatesIntoHumanReadableAddress(
         currentPositionOfUser!, context);
     await getUserInfoAndCheckBlockStatus();
+
+    await initializeGeoFireListener();
   }
 
   // check block status
@@ -312,9 +335,100 @@ class _HomeScreenState extends State<HomeScreen> {
     //send ride request
   }
 
+  updateAvailableNearbyOnlineDriversOnMap() {
+    setState(() {
+      markerSet.clear();
+    });
+
+    Set<Marker> markersTempSet = Set<Marker>();
+
+    for (OnlineNearbyDrivers eachOnlineNearbyDriver
+        in ManageDriversMethods.nearbyOnlineDriversList) {
+      // get api driver
+      LatLng driverCurrentPosition = LatLng(
+          eachOnlineNearbyDriver.latDriver!, eachOnlineNearbyDriver.lngDriver!);
+
+      Marker driverMarker = Marker(
+        markerId: MarkerId(
+            "driver ID = " + eachOnlineNearbyDriver.uidDriver.toString()),
+        position: driverCurrentPosition,
+        icon: carIconNearbyDriver!,
+      );
+
+      markersTempSet.add(driverMarker);
+    }
+
+    setState(() {
+      markerSet = markersTempSet;
+    });
+  }
+
+  initializeGeoFireListener() {
+    Geofire.initialize("onlineDrivers");
+    Geofire.queryAtLocation(currentPositionOfUser!.latitude,
+            currentPositionOfUser!.longitude, 22)!
+        .listen((driverEvent) {
+      if (driverEvent != null) {
+        // _timer = Timer.periodic(const Duration(seconds: 7), (Timer timer) {
+        //   if (time) {
+        //     homeService.getPositionDriver(context: context);
+        //   }
+        // });
+        var onlineDriverChild = driverEvent["callBack"];
+
+        switch (onlineDriverChild) {
+          case Geofire.onKeyEntered:
+            OnlineNearbyDrivers onlineNearbyDrivers = OnlineNearbyDrivers();
+            onlineNearbyDrivers.uidDriver = driverEvent["key"];
+            onlineNearbyDrivers.latDriver = driverEvent["latitude"];
+            onlineNearbyDrivers.lngDriver = driverEvent["longitude"];
+            ManageDriversMethods.nearbyOnlineDriversList
+                .add(onlineNearbyDrivers);
+
+            if (nearbyOnlineDriversKeysLoaded == true) {
+              //update drivers on google map
+              updateAvailableNearbyOnlineDriversOnMap();
+            }
+
+            break;
+
+          case Geofire.onKeyExited:
+            ManageDriversMethods.removeDriverFromList(driverEvent["key"]);
+
+            //update drivers on google map
+            updateAvailableNearbyOnlineDriversOnMap();
+
+            break;
+
+          case Geofire.onKeyMoved:
+            OnlineNearbyDrivers onlineNearbyDrivers = OnlineNearbyDrivers();
+            onlineNearbyDrivers.uidDriver = driverEvent["key"];
+            onlineNearbyDrivers.latDriver = driverEvent["latitude"];
+            onlineNearbyDrivers.lngDriver = driverEvent["longitude"];
+            ManageDriversMethods.updateOnlineNearbyDriversLocation(
+                onlineNearbyDrivers);
+
+            //update drivers on google map
+            updateAvailableNearbyOnlineDriversOnMap();
+
+            break;
+
+          case Geofire.onGeoQueryReady:
+            nearbyOnlineDriversKeysLoaded = true;
+
+            //update drivers on google map
+            updateAvailableNearbyOnlineDriversOnMap();
+
+            break;
+        }
+      }
+    });
+  }
+
 //============================================================================================
   @override
   Widget build(BuildContext context) {
+    makeDriverNearbyCarIcon();
     var userProvider = Provider.of<UserProvider>(context).user;
 
     return Scaffold(
@@ -430,6 +544,52 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   title: const Text(
                     "Logout",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              ),
+
+              GestureDetector(
+                onTap: () {
+                  time = true;
+                },
+                child: ListTile(
+                  leading: IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.timeline,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  title: const Text(
+                    "Timer start",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              ),
+
+              GestureDetector(
+                onTap: () {
+                  time = false;
+                  _timer.cancel();
+
+                  Timer? tempTimer = _timer;
+                  if (tempTimer != null && tempTimer.isActive) {
+                    tempTimer.cancel();
+                    print("Timer stopped");
+                  }
+                  _timer = Timer(Duration.zero, () {});
+                },
+                child: ListTile(
+                  leading: IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.timeline,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  title: const Text(
+                    "Timer stop",
                     style: TextStyle(color: Colors.grey),
                   ),
                 ),
