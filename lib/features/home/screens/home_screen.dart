@@ -64,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool time = false;
   DatabaseReference? tripRequestRef;
   List<OnlineNearbyDrivers>? availableNearbyOnlineDriversList;
+  List listtoken = [];
 
   makeDriverNearbyCarIcon() {
     if (carIconNearbyDriver == null) {
@@ -393,6 +394,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onlineNearbyDrivers.lngDriver = driverEvent["longitude"];
             ManageDriversMethods.nearbyOnlineDriversList
                 .add(onlineNearbyDrivers);
+            print("Key online near driver: " + driverEvent["key"].toString());
 
             if (nearbyOnlineDriversKeysLoaded == true) {
               //update drivers on google map
@@ -416,6 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onlineNearbyDrivers.lngDriver = driverEvent["longitude"];
             ManageDriversMethods.updateOnlineNearbyDriversLocation(
                 onlineNearbyDrivers);
+            print("Key online near driver: " + driverEvent["key"].toString());
 
             //update drivers on google map
             updateAvailableNearbyOnlineDriversOnMap();
@@ -527,6 +530,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   sendNotificationToDriver(OnlineNearbyDrivers currentDriver) {
     //update driver's newTripStatus - assign tripID to current driver
+    homeService.getTokenDrivers(
+        context: context, driverid: [currentDriver.uidDriver.toString()]);
     DatabaseReference currentDriverRef = FirebaseDatabase.instance
         .ref()
         .child("drivers")
@@ -534,6 +539,12 @@ class _HomeScreenState extends State<HomeScreen> {
         .child("newTripStatus");
 
     currentDriverRef.set(tripRequestRef!.key);
+    print('Current Driver id:' + currentDriver.uidDriver.toString());
+
+    homeService.updateNewStatus(
+        context: context,
+        driverid: [currentDriver.uidDriver.toString()],
+        trip: tripRequestRef!.key.toString());
 
     //get current driver device recognition token
     DatabaseReference tokenOfCurrentDriverRef = FirebaseDatabase.instance
@@ -542,16 +553,15 @@ class _HomeScreenState extends State<HomeScreen> {
         .child(currentDriver.uidDriver.toString())
         .child("deviceToken");
 
-    tokenOfCurrentDriverRef.once().then((dataSnapshot) {
+    tokenOfCurrentDriverRef.once().then((dataSnapshot) async {
       if (dataSnapshot.snapshot.value != null) {
         String deviceToken = dataSnapshot.snapshot.value.toString();
-        // homeService.updateNewStatus(
-        //     context: context,
-        //     driverid: deviceToken,
-        //     trip: tripRequestRef!.key.toString());
+
         //send notification
-        PushNotificationService.sendNotificationToSelectedDriver(
-            deviceToken, context, tripRequestRef!.key.toString());
+        for (var token in homeService.listtoken) {
+          PushNotificationService.sendNotificationToSelectedDriver(
+              token, context, tripRequestRef!.key.toString());
+        }
       } else {
         return;
       }

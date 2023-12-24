@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print
+// ignore_for_file: use_build_context_synchronously, avoid_print, prefer_interpolation_to_compose_strings
 
 import 'dart:convert';
 import 'package:customer_taxi_booking_app/constants/error_handing.dart';
@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 class HomeService {
   double? lat;
   double? long;
+  List<String> listtoken = [];
 
   void getPositionDriver({
     required BuildContext context,
@@ -101,7 +102,7 @@ class HomeService {
 
   void updateNewStatus({
     required BuildContext context,
-    required String driverid,
+    required List<String> driverid,
     required String trip,
   }) async {
     try {
@@ -124,6 +125,44 @@ class HomeService {
           onSuccess: () {
             showSnackBar(context, "Update new stutus");
           });
+    } catch (e) {
+      showSnackBar(context, e.toString());
+    }
+  }
+
+// get Token Driver
+  getTokenDrivers({
+    required BuildContext context,
+    required List<String> driverid,
+  }) async {
+    try {
+      final userprovider = Provider.of<UserProvider>(context, listen: false);
+      http.Response res = await http.post(
+        Uri.parse('$uri/api/users/get-token/drivers'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': userprovider.user.token
+        },
+        body: jsonEncode({
+          'uiddriver': driverid,
+        }),
+      );
+
+      httpErrorHandle(
+        response: res,
+        context: context,
+        onSuccess: () {
+          try {
+            List<dynamic> responseData = jsonDecode(res.body)['data'];
+            listtoken.addAll(responseData.map((item) => item.toString()));
+
+            print(listtoken);
+          } catch (e) {
+            print(e.toString());
+          }
+          print(listtoken);
+        },
+      );
     } catch (e) {
       showSnackBar(context, e.toString());
     }
