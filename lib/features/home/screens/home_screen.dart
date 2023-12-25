@@ -557,9 +557,7 @@ class _HomeScreenState extends State<HomeScreen> {
         //send notification
         for (var token in homeService.listtoken) {
           PushNotificationService.sendNotificationToSelectedDriver(
-              token != null ? token : deviceToken,
-              context,
-              tripRequestRef!.key.toString());
+              token, context, tripRequestRef!.key.toString());
         }
       } else {
         return;
@@ -573,6 +571,10 @@ class _HomeScreenState extends State<HomeScreen> {
         //Khi yêu cầu chuyến đi không yêu cầu có nghĩa là hủy yêu cầu chuyến đi - Dừng hẹn giờ
         if (stateOfApp != "requesting") {
           timer.cancel();
+          homeService.updateNewStatus(
+              context: context,
+              driverid: [currentDriver.uidDriver.toString()],
+              trip: "cancelled");
           currentDriverRef.set("cancelled");
           currentDriverRef.onDisconnect();
           requestTimeoutDriver = 20;
@@ -589,6 +591,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
         //Nếu 20 giây trôi qua - Gửi thông báo đến trình điều khiển trực tuyến gần nhất tiếp theo
         if (requestTimeoutDriver == 0) {
+          homeService.updateNewStatus(
+              context: context,
+              driverid: [currentDriver.uidDriver.toString()],
+              trip: "timeout");
           currentDriverRef.set("timeout");
           timer.cancel();
           currentDriverRef.onDisconnect();
