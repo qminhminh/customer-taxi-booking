@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_import, unused_local_variable, sized_box_for_whitespace, prefer_const_constructors, use_build_context_synchronously, prefer_interpolation_to_compose_strings, avoid_print, avoid_function_literals_in_foreach_calls, prefer_collection_literals, unnecessary_null_comparison, prefer_is_empty
+// ignore_for_file: unnecessary_import, unused_local_variable, sized_box_for_whitespace, prefer_const_constructors, use_build_context_synchronously, prefer_interpolation_to_compose_strings, avoid_print, avoid_function_literals_in_foreach_calls, prefer_collection_literals, unnecessary_null_comparison, prefer_is_empty, prefer_if_null_operators
 
 import 'dart:async';
 import 'dart:convert';
@@ -27,7 +27,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:restart_app/restart_app.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String reouteName = '/home';
@@ -321,8 +320,6 @@ class _HomeScreenState extends State<HomeScreen> {
       carDetailsDriver = "";
       tripStatusDisplay = 'Driver is Arriving';
     });
-
-    Restart.restartApp();
   }
 
   cancelRideRequest() {
@@ -560,11 +557,47 @@ class _HomeScreenState extends State<HomeScreen> {
         //send notification
         for (var token in homeService.listtoken) {
           PushNotificationService.sendNotificationToSelectedDriver(
-              token, context, tripRequestRef!.key.toString());
+              token != null ? token : deviceToken,
+              context,
+              tripRequestRef!.key.toString());
         }
       } else {
         return;
       }
+
+      const oneTickPerSec = Duration(seconds: 1);
+
+      var timerCountDown = Timer.periodic(oneTickPerSec, (timer) {
+        requestTimeoutDriver = requestTimeoutDriver - 1;
+
+        //Khi yêu cầu chuyến đi không yêu cầu có nghĩa là hủy yêu cầu chuyến đi - Dừng hẹn giờ
+        if (stateOfApp != "requesting") {
+          timer.cancel();
+          currentDriverRef.set("cancelled");
+          currentDriverRef.onDisconnect();
+          requestTimeoutDriver = 20;
+        }
+
+        //Khi yêu cầu chuyến đi được chấp nhận bởi người lái xe trực tuyến gần nhất có sẵn
+        currentDriverRef.onValue.listen((dataSnapshot) {
+          if (dataSnapshot.snapshot.value.toString() == "accepted") {
+            timer.cancel();
+            currentDriverRef.onDisconnect();
+            requestTimeoutDriver = 20;
+          }
+        });
+
+        //Nếu 20 giây trôi qua - Gửi thông báo đến trình điều khiển trực tuyến gần nhất tiếp theo
+        if (requestTimeoutDriver == 0) {
+          currentDriverRef.set("timeout");
+          timer.cancel();
+          currentDriverRef.onDisconnect();
+          requestTimeoutDriver = 20;
+
+          //Gửi thông báo đến trình điều khiển có sẵn trực tuyến gần nhất tiếp theo
+          searchDriver();
+        }
+      });
     });
   }
 
