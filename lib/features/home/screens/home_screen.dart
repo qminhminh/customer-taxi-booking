@@ -577,7 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
               trip: "cancelled");
           currentDriverRef.set("cancelled");
           currentDriverRef.onDisconnect();
-          requestTimeoutDriver = 20;
+          requestTimeoutDriver = 30;
         }
 
         //Khi yêu cầu chuyến đi được chấp nhận bởi người lái xe trực tuyến gần nhất có sẵn
@@ -585,7 +585,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (dataSnapshot.snapshot.value.toString() == "accepted") {
             timer.cancel();
             currentDriverRef.onDisconnect();
-            requestTimeoutDriver = 20;
+            requestTimeoutDriver = 30;
           }
         });
 
@@ -598,7 +598,7 @@ class _HomeScreenState extends State<HomeScreen> {
           currentDriverRef.set("timeout");
           timer.cancel();
           currentDriverRef.onDisconnect();
-          requestTimeoutDriver = 20;
+          requestTimeoutDriver = 30;
 
           //Gửi thông báo đến trình điều khiển có sẵn trực tuyến gần nhất tiếp theo
           searchDriver();
