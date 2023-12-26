@@ -57,6 +57,8 @@ dependencies:
   connectivity_plus: ^5.0.2
   loading_animation_widget: ^1.2.0+4
   restart_app: ^1.2.1
+  zego_uikit_prebuilt_call: ^3.17.10
+  zego_uikit_signaling_plugin: ^2.7.0
 
 dev_dependencies:
   flutter_test:

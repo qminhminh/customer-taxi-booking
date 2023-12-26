@@ -5,6 +5,9 @@ import 'package:customer_taxi_booking_app/constants/error_handing.dart';
 import 'package:customer_taxi_booking_app/constants/global_variables.dart';
 import 'package:customer_taxi_booking_app/constants/utils.dart';
 import 'package:customer_taxi_booking_app/providers/user_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -13,6 +16,12 @@ class HomeService {
   double? lat;
   double? long;
   List<String> listtoken = [];
+  FirebaseMessaging firebaseCloudMessaging = FirebaseMessaging.instance;
+  DatabaseReference ref = FirebaseDatabase.instance
+      .ref()
+      .child("users")
+      .child(FirebaseAuth.instance.currentUser!.uid)
+      .child('token');
 
   void getPositionDriver({
     required BuildContext context,
@@ -124,6 +133,38 @@ class HomeService {
           context: context,
           onSuccess: () {
             showSnackBar(context, "Update new stutus");
+          });
+    } catch (e) {
+      showSnackBar(context, e.toString());
+    }
+  }
+
+// update drivce token
+  upatedeviceToken({
+    required BuildContext context,
+  }) async {
+    try {
+      String? deviceRecognitionToken = await firebaseCloudMessaging.getToken();
+      final userprovider = Provider.of<UserProvider>(context, listen: false);
+      http.Response res = await http.put(
+          Uri.parse('$uri/api/users/update-tokendevice/customer'),
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            'x-auth-token': userprovider.user.token
+          },
+          body: jsonEncode({
+            'email': userprovider.user.email,
+            'devicetoken': deviceRecognitionToken,
+          }));
+
+      print(res.body);
+
+      httpErrorHandle(
+          response: res,
+          context: context,
+          onSuccess: () {
+            ref.set(deviceRecognitionToken);
+            showSnackBar(context, 'Update device token');
           });
     } catch (e) {
       showSnackBar(context, e.toString());

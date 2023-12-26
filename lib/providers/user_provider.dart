@@ -12,6 +12,7 @@ class UserProvider extends ChangeNotifier {
     photo: '',
     type: '',
     token: '',
+    idf: '',
   );
 
   UserCustomer get user => _user;

@@ -10,6 +10,7 @@ class UserCustomer {
   final String photo;
   final String type;
   final String token;
+  final String idf;
 
   UserCustomer({
     required this.id,
@@ -21,6 +22,7 @@ class UserCustomer {
     required this.photo,
     required this.type,
     required this.token,
+    required this.idf,
   });
 
   Map<String, dynamic> toMap() {
@@ -34,6 +36,7 @@ class UserCustomer {
       'photo': photo,
       'type': type,
       'token': token,
+      'idf': idf,
     };
   }
 
@@ -48,6 +51,7 @@ class UserCustomer {
       photo: map['photo'] ?? '',
       type: map['type'] ?? '',
       token: map['token'] ?? '',
+      idf: map['idf'] ?? '',
     );
   }
 
@@ -56,17 +60,17 @@ class UserCustomer {
   factory UserCustomer.fromJson(String source) =>
       UserCustomer.fromMap(json.decode(source));
 
-  UserCustomer copyWith({
-    String? id,
-    String? blockStatus,
-    String? email,
-    String? password,
-    String? name,
-    String? phone,
-    String? photo,
-    String? type,
-    String? token,
-  }) {
+  UserCustomer copyWith(
+      {String? id,
+      String? blockStatus,
+      String? email,
+      String? password,
+      String? name,
+      String? phone,
+      String? photo,
+      String? type,
+      String? token,
+      String? idf}) {
     return UserCustomer(
       id: id ?? this.id,
       blockStatus: blockStatus ?? this.blockStatus,
@@ -77,6 +81,7 @@ class UserCustomer {
       photo: photo ?? this.photo,
       type: type ?? this.type,
       token: token ?? this.token,
+      idf: idf ?? this.idf,
     );
   }
 }

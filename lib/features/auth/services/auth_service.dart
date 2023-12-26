@@ -21,6 +21,7 @@ class AuthSerVice {
     required String name,
     required String phone,
     required String photo,
+    required String idf
   }) async {
     try {
       UserCustomer user = UserCustomer(
@@ -33,6 +34,7 @@ class AuthSerVice {
         photo: photo,
         type: '',
         token: '',
+        idf: idf,
       );
 
       http.Response res = await http.post(

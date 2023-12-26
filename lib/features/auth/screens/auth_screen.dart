@@ -4,6 +4,7 @@ import 'package:customer_taxi_booking_app/common/widgets/custom_button.dart';
 import 'package:customer_taxi_booking_app/common/widgets/custom_textdield.dart';
 import 'package:customer_taxi_booking_app/constants/global_variables.dart';
 import 'package:customer_taxi_booking_app/features/auth/services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -42,13 +43,13 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void signUpUser() {
     authSerVice.signUpUser(
-      context: context,
-      email: _emailController.text,
-      password: _passwordController.text,
-      name: _nameController.text,
-      phone: _phoneController.text,
-      photo: APIs().image,
-    );
+        context: context,
+        email: _emailController.text,
+        password: _passwordController.text,
+        name: _nameController.text,
+        phone: _phoneController.text,
+        photo: APIs().image,
+        idf: FirebaseAuth.instance.currentUser!.uid);
   }
 
   void signInUser() {
@@ -180,7 +181,6 @@ class _AuthScreenState extends State<AuthScreen> {
                           onTap: () async {
                             if (_signUpFormKey.currentState!.validate()) {
                               signUpUser();
-
                               // api sign up firebase
                               await APIs().uploadImageToStorage(
                                   imageFile,
