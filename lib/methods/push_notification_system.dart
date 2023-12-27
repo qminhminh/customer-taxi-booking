@@ -3,6 +3,7 @@
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:customer_taxi_booking_app/features/callpages/call_page_zego.dart';
 import 'package:customer_taxi_booking_app/global/global_var.dart';
+import 'package:customer_taxi_booking_app/widgets/loading_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -34,11 +35,6 @@ class PushNotificationSystem {
         .getInitialMessage()
         .then((RemoteMessage? messageRemote) {
       if (messageRemote != null) {
-        audioPlayer.open(
-          Audio("assets/audio/reng.mp3"),
-        );
-
-        audioPlayer.play();
         String idf = messageRemote.data["idf"];
 
         retrieveTripRequestInfo(idf, context);
@@ -50,11 +46,6 @@ class PushNotificationSystem {
     FirebaseMessaging.onMessage.listen((RemoteMessage? messageRemote) {
       if (messageRemote != null) {
         String idf = messageRemote.data["idf"];
-        audioPlayer.open(
-          Audio("assets/audio/reng.mp3"),
-        );
-
-        audioPlayer.play();
 
         retrieveTripRequestInfo(idf, context);
       }
@@ -65,11 +56,6 @@ class PushNotificationSystem {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? messageRemote) {
       if (messageRemote != null) {
         String idf = messageRemote.data["idf"];
-        audioPlayer.open(
-          Audio("assets/audio/reng.mp3"),
-        );
-
-        audioPlayer.play();
 
         retrieveTripRequestInfo(idf, context);
       }
@@ -77,11 +63,22 @@ class PushNotificationSystem {
   }
 
   retrieveTripRequestInfo(String idf, BuildContext context) {
-    audioPlayer.stop();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) =>
+          LoadingDialog(messageText: "getting details..."),
+    );
+    audioPlayer.open(
+      Audio("assets/audio/reng.mp3"),
+    );
+
+    audioPlayer.play();
 
     Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => CallPage(callID: idf, name: "You", id: idf)));
+    audioPlayer.stop();
   }
 }
