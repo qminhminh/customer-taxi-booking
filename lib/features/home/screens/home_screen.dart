@@ -12,6 +12,7 @@ import 'package:customer_taxi_booking_app/global/trip_var.dart';
 import 'package:customer_taxi_booking_app/methods/common_methods.dart';
 import 'package:customer_taxi_booking_app/methods/manage_drivers_methods.dart';
 import 'package:customer_taxi_booking_app/methods/push_notification_service.dart';
+import 'package:customer_taxi_booking_app/methods/push_notification_system.dart';
 import 'package:customer_taxi_booking_app/models/direction_details.dart';
 import 'package:customer_taxi_booking_app/models/online_nearby_drivers.dart';
 import 'package:customer_taxi_booking_app/providers/user_provider.dart';
@@ -607,10 +608,18 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  initializePushNotificationSystem() {
+    PushNotificationSystem notificationSystem = PushNotificationSystem();
+    notificationSystem.generateDeviceRegistrationToken();
+    notificationSystem.startListeningForNewNotification(context);
+
+    homeService.upatedeviceToken(context: context);
+  }
+
   @override
   void initState() {
     super.initState();
-    homeService.upatedeviceToken(context: context);
+    initializePushNotificationSystem();
   }
 
 //============================================================================================
