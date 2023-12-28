@@ -16,6 +16,10 @@ class HomeService {
   double? lat;
   double? long;
   List<String> listtoken = [];
+  String nameDriver = '';
+  String photoDriver = '';
+  String phoneNumberDriver = '';
+  String status = '';
   FirebaseMessaging firebaseCloudMessaging = FirebaseMessaging.instance;
   DatabaseReference ref = FirebaseDatabase.instance
       .ref()
@@ -23,6 +27,7 @@ class HomeService {
       .child(FirebaseAuth.instance.currentUser!.uid)
       .child('token');
 
+  // get posion driver
   void getPositionDriver({
     required BuildContext context,
   }) async {
@@ -55,6 +60,7 @@ class HomeService {
     }
   }
 
+  // add trip request
   void addTripREquest({
     required BuildContext context,
     required String tripID,
@@ -109,6 +115,7 @@ class HomeService {
     }
   }
 
+  // update status driver
   void updateNewStatus({
     required BuildContext context,
     required List<String> driverid,
@@ -198,6 +205,43 @@ class HomeService {
             listtoken.addAll(responseData.map((item) => item.toString()));
 
             print(listtoken);
+          } catch (e) {
+            print(e.toString());
+          }
+          print(listtoken);
+        },
+      );
+    } catch (e) {
+      showSnackBar(context, e.toString());
+    }
+  }
+
+  // get information driver in trip request
+  getInfoDriverInTripRequest({
+    required BuildContext context,
+    required String tripID,
+  }) async {
+    try {
+      final userprovider = Provider.of<UserProvider>(context, listen: false);
+      http.Response res = await http.get(
+        Uri.parse(
+            '$uri/api/users/get-information-in-trip-request/drivers/$tripID'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': userprovider.user.token
+        },
+      );
+
+      httpErrorHandle(
+        response: res,
+        context: context,
+        onSuccess: () {
+          try {
+            dynamic data = jsonDecode(res.body);
+            nameDriver = data['driverName'];
+            photoDriver = data['driverPhoto'];
+            phoneNumberDriver = data['driverPhone'];
+            status = data['status'];
           } catch (e) {
             print(e.toString());
           }

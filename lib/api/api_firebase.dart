@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, body_might_complete_normally_catch_error
+// ignore_for_file: avoid_print, body_might_complete_normally_catch_error, prefer_interpolation_to_compose_strings
 
 import 'dart:io';
 import 'package:customer_taxi_booking_app/global/global_var.dart';
@@ -17,7 +17,8 @@ class APIs {
     nameController,
     phoneController,
   ) async {
-    String imageIDName = DateTime.now().millisecondsSinceEpoch.toString();
+    String imageIDName =
+        DateTime.now().millisecondsSinceEpoch.toString() + ".png";
     Reference referenceImage =
         FirebaseStorage.instance.ref().child("Images").child(imageIDName);
 

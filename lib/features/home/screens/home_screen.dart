@@ -28,6 +28,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String reouteName = '/home';
@@ -65,7 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
   DatabaseReference? tripRequestRef;
   List<OnlineNearbyDrivers>? availableNearbyOnlineDriversList;
   List listtoken = [];
+  StreamSubscription<DatabaseEvent>? tripStreamSubscription;
+  bool requestingDirectionDetailsInfo = false;
 
+  // icons driver near
   makeDriverNearbyCarIcon() {
     if (carIconNearbyDriver == null) {
       ImageConfiguration configuration =
@@ -146,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  //   display User Ride Details Container
   displayUserRideDetailsContainer() async {
     ///Directions API
     await retrieveDirectionDetails();
@@ -158,6 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // retrieve Direction Details
   retrieveDirectionDetails() async {
     var pickUpLocation =
         Provider.of<AppInfo>(context, listen: false).pickUpLocation;
@@ -170,6 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
         dropOffDestinationLocation!.latitudePosition!,
         dropOffDestinationLocation.longitudePosition!);
 
+    // sj=how dilog
     showDialog(
       barrierDismissible: false,
       context: context,
@@ -301,6 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // reset App Now
   resetAppNow() {
     setState(() {
       polylineCoOrdinates.clear();
@@ -323,6 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  //cancel Ride Request
   cancelRideRequest() {
     //remove ride request from database
 
@@ -331,6 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  //display Request Container
   displayRequestContainer() {
     setState(() {
       rideDetailsContainerHeight = 0;
@@ -343,6 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
     makeTripRequest();
   }
 
+// update Available Near by Online Drivers On Map
   updateAvailableNearbyOnlineDriversOnMap() {
     setState(() {
       markerSet.clear();
@@ -371,6 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  //initialize GeoFire Listener
   initializeGeoFireListener() {
     Geofire.initialize("onlineDrivers");
     Geofire.queryAtLocation(currentPositionOfUser!.latitude,
@@ -435,6 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // make Trip Request
   makeTripRequest() {
     tripRequestRef =
         FirebaseDatabase.instance.ref().child("tripRequests").push();
@@ -481,6 +494,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     tripRequestRef!.set(dataMap);
 
+    //  // add server
     homeService.addTripREquest(
         context: context,
         tripID: tripRequestRef!.key.toString(),
@@ -497,8 +511,148 @@ class _HomeScreenState extends State<HomeScreen> {
         driverID: "waiting",
         latdriver: "",
         longdriver: "");
+
+    homeService.getInfoDriverInTripRequest(
+        context: context, tripID: tripRequestRef!.key.toString());
+
+// get inform ation for driver
+    tripStreamSubscription = tripRequestRef!.onValue.listen((eventSnapshot) {
+      if (eventSnapshot.snapshot.value == null) {
+        return;
+      }
+
+      if ((eventSnapshot.snapshot.value as Map)["driverName"] != null) {
+        nameDriver = homeService.nameDriver != ''
+            ? homeService.nameDriver
+            : (eventSnapshot.snapshot.value as Map)["driverName"];
+      }
+
+      if ((eventSnapshot.snapshot.value as Map)["driverPhone"] != null) {
+        phoneNumberDriver = homeService.phoneNumberDriver != ''
+            ? homeService.phoneNumberDriver
+            : (eventSnapshot.snapshot.value as Map)["driverPhone"];
+      }
+
+      if ((eventSnapshot.snapshot.value as Map)["driverPhoto"] != null) {
+        photoDriver = homeService.photoDriver != ''
+            ? homeService.photoDriver
+            : (eventSnapshot.snapshot.value as Map)["driverPhoto"];
+      }
+
+      if ((eventSnapshot.snapshot.value as Map)["carDetails"] != null) {
+        carDetailsDriver = (eventSnapshot.snapshot.value as Map)["carDetails"];
+      }
+
+      if ((eventSnapshot.snapshot.value as Map)["status"] != null) {
+        status = homeService.status != ''
+            ? homeService.status
+            : (eventSnapshot.snapshot.value as Map)["status"];
+      }
+
+      if ((eventSnapshot.snapshot.value as Map)["driverLocation"] != null) {
+        double driverLatitude = double.parse(
+            (eventSnapshot.snapshot.value as Map)["driverLocation"]["latitude"]
+                .toString());
+        double driverLongitude = double.parse(
+            (eventSnapshot.snapshot.value as Map)["driverLocation"]["longitude"]
+                .toString());
+        LatLng driverCurrentLocationLatLng =
+            LatLng(driverLatitude, driverLongitude);
+
+        if (status == "accepted") {
+          //update info for pickup to user on UI
+          //info from driver current location to user pickup location
+          updateFromDriverCurrentLocationToPickUp(driverCurrentLocationLatLng);
+        } else if (status == "arrived") {
+          //update info for arrived - when driver reach at the pickup point of user
+          setState(() {
+            tripStatusDisplay = 'Driver has Arrived';
+          });
+        } else if (status == "ontrip") {
+          //update info for dropoff to user on UI
+          //info from driver current location to user dropoff location
+          updateFromDriverCurrentLocationToDropOffDestination(
+              driverCurrentLocationLatLng);
+        }
+      }
+
+      if (status == "accepted") {
+        displayTripDetailsContainer();
+
+        Geofire.stopListener();
+
+        //remove drivers markers
+        setState(() {
+          markerSet.removeWhere(
+              (element) => element.markerId.value.contains("driver"));
+        });
+      }
+    });
   }
 
+  // display Trip Details Container
+  displayTripDetailsContainer() {
+    setState(() {
+      requestContainerHeight = 0;
+      tripContainerHeight = 291;
+      bottomMapPadding = 281;
+    });
+  }
+
+  // update From Driver Current Location To PickUp
+  updateFromDriverCurrentLocationToPickUp(driverCurrentLocationLatLng) async {
+    if (!requestingDirectionDetailsInfo) {
+      requestingDirectionDetailsInfo = true;
+
+      var userPickUpLocationLatLng = LatLng(
+          currentPositionOfUser!.latitude, currentPositionOfUser!.longitude);
+
+      var directionDetailsPickup =
+          await CommonMethods.getDirectionDetailsFromAPI(
+              driverCurrentLocationLatLng, userPickUpLocationLatLng);
+
+      if (directionDetailsPickup == null) {
+        return;
+      }
+
+      setState(() {
+        tripStatusDisplay =
+            "Driver is Coming - ${directionDetailsPickup.durationTextString} - ${directionDetailsPickup.distanceTextString}";
+      });
+
+      requestingDirectionDetailsInfo = false;
+    }
+  }
+
+  // update From Driver Current Location To DropOff Destination
+  updateFromDriverCurrentLocationToDropOffDestination(
+      driverCurrentLocationLatLng) async {
+    if (!requestingDirectionDetailsInfo) {
+      requestingDirectionDetailsInfo = true;
+
+      var dropOffLocation =
+          Provider.of<AppInfo>(context, listen: false).dropOffLocation;
+      var userDropOffLocationLatLng = LatLng(dropOffLocation!.latitudePosition!,
+          dropOffLocation.longitudePosition!);
+
+      var directionDetailsPickup =
+          await CommonMethods.getDirectionDetailsFromAPI(
+              driverCurrentLocationLatLng, userDropOffLocationLatLng);
+
+      if (directionDetailsPickup == null) {
+        return;
+      }
+
+      setState(() {
+        tripStatusDisplay =
+            "Driving to DropOff - ${directionDetailsPickup.durationTextString}: ${directionDetailsPickup.distanceTextString}";
+      });
+
+      requestingDirectionDetailsInfo = false;
+    }
+  }
+
+  // no Driver Available
   noDriverAvailable() {
     showDialog(
         context: context,
@@ -510,10 +664,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ));
   }
 
+  // search Driver
   searchDriver() {
     if (availableNearbyOnlineDriversList!.length == 0) {
+      // cancel Ride Request
       cancelRideRequest();
+
+      // reset App Now
       resetAppNow();
+
+      // no Driver Available
       noDriverAvailable();
       return;
     }
@@ -526,6 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
     availableNearbyOnlineDriversList!.removeAt(0);
   }
 
+  // send Notification To Driver
   sendNotificationToDriver(OnlineNearbyDrivers currentDriver) {
     //update driver's newTripStatus - assign tripID to current driver
     homeService.getTokenDrivers(
@@ -608,6 +769,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // initialize Push Notification System
   initializePushNotificationSystem() {
     PushNotificationSystem notificationSystem = PushNotificationSystem();
     notificationSystem.generateDeviceRegistrationToken();
@@ -616,6 +778,7 @@ class _HomeScreenState extends State<HomeScreen> {
     homeService.upatedeviceToken(context: context);
   }
 
+  // initState
   @override
   void initState() {
     super.initState();
@@ -1097,6 +1260,241 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 25,
                         ),
                       ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          ///trip details container
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              height: tripContainerHeight,
+              decoration: const BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white24,
+                    blurRadius: 15.0,
+                    spreadRadius: 0.5,
+                    offset: Offset(
+                      0.7,
+                      0.7,
+                    ),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(
+                      height: 5,
+                    ),
+
+                    //trip status display text
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          tripStatusDisplay,
+                          style: const TextStyle(
+                            fontSize: 19,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(
+                      height: 19,
+                    ),
+
+                    const Divider(
+                      height: 1,
+                      color: Colors.white70,
+                      thickness: 1,
+                    ),
+
+                    const SizedBox(
+                      height: 19,
+                    ),
+
+                    //image - driver name and driver car details
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        ClipOval(
+                          child: Image.network(
+                            photoDriver == ''
+                                ? "https://firebasestorage.googleapis.com/v0/b/taxi-booking-acb4b.appspot.com/o/Images%2Favatar.png?alt=media&token=fcd3d7f8-6915-440b-a617-d258e8a3fd15"
+                                : photoDriver,
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 8,
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nameDriver,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              carDetailsDriver,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(
+                      height: 19,
+                    ),
+
+                    const Divider(
+                      height: 1,
+                      color: Colors.white70,
+                      thickness: 1,
+                    ),
+
+                    const SizedBox(
+                      height: 19,
+                    ),
+
+                    //call driver btn
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // call
+                        GestureDetector(
+                          onTap: () {
+                            launchUrl(Uri.parse("tel://$phoneNumberDriver"));
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                height: 50,
+                                width: 50,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(25)),
+                                  border: Border.all(
+                                    width: 1,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.phone,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 11,
+                              ),
+                              const Text(
+                                "Call",
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // video call
+                        GestureDetector(
+                          onTap: () {},
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                height: 50,
+                                width: 50,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(25)),
+                                  border: Border.all(
+                                    width: 1,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.video_call,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 11,
+                              ),
+                              const Text(
+                                "Video Call",
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        //  chat
+                        GestureDetector(
+                          onTap: () {},
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                height: 50,
+                                width: 50,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(25)),
+                                  border: Border.all(
+                                    width: 1,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.chat,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 11,
+                              ),
+                              const Text(
+                                "Chat",
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
