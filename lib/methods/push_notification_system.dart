@@ -28,6 +28,7 @@ class PushNotificationSystem {
     firebaseCloudMessaging.subscribeToTopic("users");
   }
 
+  // recive notice trip request
   startListeningForNewNotification(BuildContext context) async {
     ///1. Terminated
     //When the app is completely closed and it receives a push notification

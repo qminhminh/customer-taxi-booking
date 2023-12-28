@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:customer_taxi_booking_app/appInfo/app_info.dart';
 import 'package:customer_taxi_booking_app/features/auth/services/auth_service.dart';
+import 'package:customer_taxi_booking_app/features/callpages/call_page_zego.dart';
 import 'package:customer_taxi_booking_app/features/home/services/home_service.dart';
 import 'package:customer_taxi_booking_app/features/search/screen/search_destination_page.dart';
 import 'package:customer_taxi_booking_app/global/global_var.dart';
@@ -525,6 +526,9 @@ class _HomeScreenState extends State<HomeScreen> {
         nameDriver = homeService.nameDriver != ''
             ? homeService.nameDriver
             : (eventSnapshot.snapshot.value as Map)["driverName"];
+        idf = homeService.idf != ''
+            ? homeService.idf
+            : (eventSnapshot.snapshot.value as Map)["driverID"];
       }
 
       if ((eventSnapshot.snapshot.value as Map)["driverPhone"] != null) {
@@ -1427,7 +1431,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         // video call
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            DatabaseReference tokenOfCurrentDriverRef =
+                                FirebaseDatabase.instance
+                                    .ref()
+                                    .child("drivers")
+                                    .child(idf)
+                                    .child("deviceToken");
+
+                            tokenOfCurrentDriverRef
+                                .once()
+                                .then((dataSnapshot) async {
+                              if (dataSnapshot.snapshot.value != null) {
+                                String deviceToken =
+                                    dataSnapshot.snapshot.value.toString();
+
+                                //send notification
+
+                                PushNotificationService
+                                    .sendCallToSelectedDriver(
+                                        deviceToken, context, deviceToken);
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => CallPage(
+                                            callID: deviceToken,
+                                            name: userProvider.name,
+                                            id: userProvider.id)));
+                              } else {
+                                return;
+                              }
+                            });
+                          },
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [

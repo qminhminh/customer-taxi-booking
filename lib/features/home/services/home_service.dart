@@ -19,6 +19,7 @@ class HomeService {
   String nameDriver = '';
   String photoDriver = '';
   String phoneNumberDriver = '';
+  String idf = '';
   String status = '';
   FirebaseMessaging firebaseCloudMessaging = FirebaseMessaging.instance;
   DatabaseReference ref = FirebaseDatabase.instance
@@ -242,6 +243,7 @@ class HomeService {
             photoDriver = data['driverPhoto'];
             phoneNumberDriver = data['driverPhone'];
             status = data['status'];
+            idf = data['driverID'];
           } catch (e) {
             print(e.toString());
           }
