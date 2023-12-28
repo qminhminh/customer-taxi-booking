@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:customer_taxi_booking_app/appInfo/app_info.dart';
 import 'package:customer_taxi_booking_app/features/auth/services/auth_service.dart';
 import 'package:customer_taxi_booking_app/features/callpages/call_page_zego.dart';
+import 'package:customer_taxi_booking_app/features/chat/screens/chat_screen.dart';
 import 'package:customer_taxi_booking_app/features/home/services/home_service.dart';
 import 'package:customer_taxi_booking_app/features/search/screen/search_destination_page.dart';
 import 'package:customer_taxi_booking_app/global/global_var.dart';
@@ -1497,7 +1498,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         //  chat
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ChatScreen(
+                                          name: nameDriver,
+                                          image: photoDriver,
+                                          id: idf,
+                                        )));
+                          },
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [

@@ -163,6 +163,7 @@ class HomeService {
           body: jsonEncode({
             'email': userprovider.user.email,
             'devicetoken': deviceRecognitionToken,
+            'uid': FirebaseAuth.instance.currentUser!.uid
           }));
 
       print(res.body);
