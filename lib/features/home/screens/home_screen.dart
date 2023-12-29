@@ -10,6 +10,7 @@ import 'package:customer_taxi_booking_app/features/callpages/call_page_zego.dart
 import 'package:customer_taxi_booking_app/features/chat/screens/chat_screen.dart';
 import 'package:customer_taxi_booking_app/features/home/services/home_service.dart';
 import 'package:customer_taxi_booking_app/features/search/screen/search_destination_page.dart';
+import 'package:customer_taxi_booking_app/features/trip/trips_history_page.dart';
 import 'package:customer_taxi_booking_app/global/global_var.dart';
 import 'package:customer_taxi_booking_app/global/trip_var.dart';
 import 'package:customer_taxi_booking_app/methods/common_methods.dart';
@@ -827,9 +828,9 @@ class _HomeScreenState extends State<HomeScreen> {
       key: sKey,
       drawer: Container(
         width: 255,
-        color: Colors.black87,
+        color: Colors.green[300],
         child: Drawer(
-          backgroundColor: Colors.white10,
+          backgroundColor: Colors.green[300],
           child: ListView(
             children: [
               const Divider(
@@ -840,11 +841,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
               //header
               Container(
-                color: Colors.black54,
+                color: Colors.green[300],
                 height: 160,
                 child: DrawerHeader(
-                  decoration: const BoxDecoration(
-                    color: Colors.white10,
+                  decoration: BoxDecoration(
+                    color: Colors.green[300],
                   ),
                   child: Row(
                     children: [
@@ -875,7 +876,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             userName,
                             style: const TextStyle(
                               fontSize: 16,
-                              color: Colors.grey,
+                              color: Colors.black,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -885,7 +886,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const Text(
                             "Profile",
                             style: TextStyle(
-                              color: Colors.white38,
+                              color: Colors.black,
                             ),
                           ),
                         ],
@@ -906,20 +907,42 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               //body
-              ListTile(
-                leading: IconButton(
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (c) => AboutPage()));
-                  },
-                  icon: const Icon(
-                    Icons.info,
-                    color: Colors.grey,
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (c) => TripsHistoryPage()));
+                },
+                child: ListTile(
+                  leading: IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.history,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  title: const Text(
+                    "History",
+                    style: TextStyle(color: Colors.grey),
                   ),
                 ),
-                title: const Text(
-                  "About",
-                  style: TextStyle(color: Colors.grey),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context, MaterialPageRoute(builder: (c) => AboutPage()));
+                },
+                child: ListTile(
+                  leading: IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.info,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  title: const Text(
+                    "About",
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ),
               ),
 
@@ -1087,7 +1110,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (c) => TripsHistoryPage()));
+                    },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.grey,
                         shape: const CircleBorder(),
