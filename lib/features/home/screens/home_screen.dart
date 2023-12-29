@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:customer_taxi_booking_app/appInfo/app_info.dart';
+import 'package:customer_taxi_booking_app/features/about/screen/about_page.dart';
 import 'package:customer_taxi_booking_app/features/auth/services/auth_service.dart';
 import 'package:customer_taxi_booking_app/features/callpages/call_page_zego.dart';
 import 'package:customer_taxi_booking_app/features/chat/screens/chat_screen.dart';
@@ -20,6 +21,7 @@ import 'package:customer_taxi_booking_app/models/online_nearby_drivers.dart';
 import 'package:customer_taxi_booking_app/providers/user_provider.dart';
 import 'package:customer_taxi_booking_app/widgets/info_dialog.dart';
 import 'package:customer_taxi_booking_app/widgets/loading_dialog.dart';
+import 'package:customer_taxi_booking_app/widgets/payment_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +32,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:restart_app/restart_app.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -518,7 +521,8 @@ class _HomeScreenState extends State<HomeScreen> {
         context: context, tripID: tripRequestRef!.key.toString());
 
 // get inform ation for driver
-    tripStreamSubscription = tripRequestRef!.onValue.listen((eventSnapshot) {
+    tripStreamSubscription =
+        tripRequestRef!.onValue.listen((eventSnapshot) async {
       if (eventSnapshot.snapshot.value == null) {
         return;
       }
@@ -591,6 +595,29 @@ class _HomeScreenState extends State<HomeScreen> {
           markerSet.removeWhere(
               (element) => element.markerId.value.contains("driver"));
         });
+      }
+
+      if (status == "ended") {
+        if ((eventSnapshot.snapshot.value as Map)["fareAmount"] != null) {
+          double fareAmount = double.parse(
+              (eventSnapshot.snapshot.value as Map)["fareAmount"].toString());
+
+          var responseFromPayDialog = await showDialog(
+              context: context,
+              builder: (BuildContext context) =>
+                  PaymentDialog(fareAmount: fareAmount.toString()));
+
+          if (responseFromPayDialog == "paid") {
+            tripRequestRef!.onDisconnect();
+            tripRequestRef = null;
+
+            tripStreamSubscription!.cancel();
+            tripStreamSubscription = null;
+            resetAppNow();
+
+            Restart.restartApp();
+          }
+        }
       }
     });
   }
@@ -881,7 +908,10 @@ class _HomeScreenState extends State<HomeScreen> {
               //body
               ListTile(
                 leading: IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (c) => AboutPage()));
+                  },
                   icon: const Icon(
                     Icons.info,
                     color: Colors.grey,
