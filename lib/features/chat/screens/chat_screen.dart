@@ -1,5 +1,4 @@
-import 'dart:convert';
-
+import 'dart:async';
 import 'package:customer_taxi_booking_app/common/widgets/loader.dart';
 import 'package:customer_taxi_booking_app/features/chat/services/chat_services.dart';
 import 'package:customer_taxi_booking_app/features/chat/widgets/message_card.dart';
@@ -28,12 +27,14 @@ class _ChatScreenState extends State<ChatScreen> {
   final _socketClient = SocketClient.internal.socket!;
   Socket get socketClient => _socketClient;
   List<Message>? _list;
+  late Timer _timer;
   final ChatServices chatServices = ChatServices();
 
   @override
   void dispose() {
     super.dispose();
     textController.dispose();
+    _timer.cancel();
   }
 
   fecthAllMessage() async {
@@ -47,10 +48,15 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     fecthAllMessage();
 
-    _socketClient.on('feedbackserver', (chat) {
-      setState(() {
-        _list?.add(Message.fromJson(jsonDecode(chat)));
-      });
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      fetchAndSetListMessages();
+    });
+  }
+
+  void fetchAndSetListMessages() async {
+    final messages = await chatServices.getListMessages(context, widget.id);
+    setState(() {
+      _list = messages;
     });
   }
 
@@ -175,16 +181,11 @@ class _ChatScreenState extends State<ChatScreen> {
                           textController.text, userprovider.id, widget.id);
 
                       // feaaback server
-                      _socketClient.on('feedbackserver', (chat) {
-                        setState(() {
-                          _list?.add(Message.fromJson(jsonDecode(chat)));
-                        });
 
-                        Future.delayed(const Duration(seconds: 4), () {
+                      Future.delayed(const Duration(seconds: 1), () {
+                        fecthAllMessage();
+                        setState(() {
                           fecthAllMessage();
-                          setState(() {
-                            fecthAllMessage();
-                          });
                         });
                       });
 
