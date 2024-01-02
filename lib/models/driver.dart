@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:customer_taxi_booking_app/models/rating_model.dart';
+
 class UserDriver {
   final String id;
   final String blockStatus;
@@ -15,22 +17,25 @@ class UserDriver {
   final String phone;
   final String photo;
   final String idf;
+  final List<Rating> ratings;
 
-  UserDriver(
-      {required this.id,
-      required this.blockStatus,
-      required this.carColor,
-      required this.carModel,
-      required this.carNumber,
-      required this.deviceToken,
-      required this.token,
-      required this.email,
-      required this.password,
-      required this.name,
-      required this.newTripStatus,
-      required this.phone,
-      required this.photo,
-      required this.idf});
+  UserDriver({
+    required this.id,
+    required this.blockStatus,
+    required this.carColor,
+    required this.carModel,
+    required this.carNumber,
+    required this.deviceToken,
+    required this.token,
+    required this.email,
+    required this.password,
+    required this.name,
+    required this.newTripStatus,
+    required this.phone,
+    required this.photo,
+    required this.idf,
+    required this.ratings,
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -48,6 +53,7 @@ class UserDriver {
       'phone': phone,
       'photo': photo,
       'idf': idf,
+      'ratings': ratings,
     };
   }
 
@@ -67,6 +73,10 @@ class UserDriver {
       phone: map['phone'] ?? '',
       photo: map['photo'] ?? '',
       idf: map['idf'] ?? '',
+      ratings: (map['ratings'] as List<dynamic>?)
+              ?.map((rating) => Rating.fromMap(rating))
+              .toList() ??
+          [],
     );
   }
 
@@ -106,6 +116,7 @@ class UserDriver {
       phone: phone ?? this.phone,
       photo: photo ?? this.photo,
       idf: idf ?? this.idf,
+      ratings: [],
     );
   }
 }

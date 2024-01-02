@@ -605,8 +605,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
           var responseFromPayDialog = await showDialog(
               context: context,
-              builder: (BuildContext context) =>
-                  PaymentDialog(fareAmount: fareAmount.toString()));
+              builder: (BuildContext context) => PaymentDialog(
+                    fareAmount: fareAmount.toString(),
+                    idf: idf,
+                  ));
 
           if (responseFromPayDialog == "paid") {
             tripRequestRef!.onDisconnect();

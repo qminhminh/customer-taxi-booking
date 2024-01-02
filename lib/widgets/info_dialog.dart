@@ -23,7 +23,7 @@ class _InfoDialogState extends State<InfoDialog> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14.0),
       ),
-      backgroundColor: Colors.grey,
+      backgroundColor: Colors.white,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -42,7 +42,7 @@ class _InfoDialogState extends State<InfoDialog> {
                   widget.title.toString(),
                   style: const TextStyle(
                     fontSize: 22,
-                    color: Colors.white60,
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -53,7 +53,7 @@ class _InfoDialogState extends State<InfoDialog> {
                   widget.description.toString(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.white54,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(

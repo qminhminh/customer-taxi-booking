@@ -18,6 +18,7 @@ class TripRequest {
   final String driverPhoto;
   final String fareAmount;
   final String status;
+  final double ratings;
 
   TripRequest({
     required this.tripID,
@@ -37,6 +38,7 @@ class TripRequest {
     required this.driverPhoto,
     required this.fareAmount,
     required this.status,
+    required this.ratings,
   });
 
   factory TripRequest.fromMap(Map<String, dynamic> map) {
@@ -58,6 +60,7 @@ class TripRequest {
       driverPhoto: map['driverPhoto'] ?? '',
       fareAmount: map['fareAmount'] ?? '',
       status: map['status'] ?? '',
+      ratings: (map['ratings'] ?? 0).toDouble(),
     );
   }
 
@@ -85,6 +88,7 @@ class TripRequest {
       'driverPhoto': driverPhoto,
       'fareAmount': fareAmount,
       'status': status,
+      'ratings': ratings,
     };
   }
 }

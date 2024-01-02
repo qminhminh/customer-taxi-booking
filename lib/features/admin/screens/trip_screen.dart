@@ -2,6 +2,7 @@
 
 import 'package:customer_taxi_booking_app/common/widgets/loader.dart';
 import 'package:customer_taxi_booking_app/features/admin/services/admin_services.dart';
+import 'package:customer_taxi_booking_app/features/star/screen/stars.dart';
 import 'package:customer_taxi_booking_app/models/trip_request_model.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -59,7 +60,7 @@ class _TripScreenState extends State<TripScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('List Customer'),
+        title: Text('List Trip'),
       ),
       body: RefreshIndicator(
         onRefresh: fetchData,
@@ -130,6 +131,10 @@ class _TripScreenState extends State<TripScreen> {
                                     "Fare: " + listData.fareAmount,
                                     style: TextStyle(fontSize: 16),
                                   ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Stars(rating: listData.ratings)
                                 ],
                               ),
                             ],

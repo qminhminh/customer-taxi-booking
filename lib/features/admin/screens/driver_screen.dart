@@ -1,7 +1,8 @@
-// ignore_for_file: prefer_const_constructors, unnecessary_null_comparison, prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_const_constructors, unnecessary_null_comparison, prefer_interpolation_to_compose_strings, curly_braces_in_flow_control_structures
 
 import 'package:customer_taxi_booking_app/common/widgets/loader.dart';
 import 'package:customer_taxi_booking_app/features/admin/services/admin_services.dart';
+import 'package:customer_taxi_booking_app/features/star/screen/stars.dart';
 import 'package:customer_taxi_booking_app/models/driver.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,8 @@ class _DriverScreenState extends State<DriverScreen> {
   final AdminServices adminServices = AdminServices();
   List<UserDriver>? list;
   bool isLoading = false;
+  double totalRating = 0;
+  double avgRating = 0;
 
   @override
   void initState() {
@@ -54,6 +57,12 @@ class _DriverScreenState extends State<DriverScreen> {
                 itemCount: list!.length,
                 itemBuilder: (context, index) {
                   final listData = list![index];
+                  for (int i = 0; i < listData.ratings.length; i++)
+                    totalRating += listData.ratings[i].rating;
+
+                  if (totalRating != 0) {
+                    avgRating = totalRating / listData.ratings.length;
+                  }
                   return GestureDetector(
                     onTap: () {},
                     child: Card(
@@ -128,6 +137,11 @@ class _DriverScreenState extends State<DriverScreen> {
                                   "Email:" + listData.email,
                                   style: TextStyle(fontSize: 16),
                                 ),
+                                Text(
+                                  "Avg Rating:",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                Stars(rating: avgRating),
                               ],
                             ),
                           ],
