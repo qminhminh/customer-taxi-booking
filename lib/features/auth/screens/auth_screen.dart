@@ -243,8 +243,8 @@ class _AuthScreenState extends State<AuthScreen> {
                               signInUser();
 
                               // sign in firebase
-                              await APIs().signInUser(
-                                  _emailController, _passwordController);
+                              await APIs().signInUser(_emailController,
+                                  _passwordController, context);
                             }
                           },
                         )
