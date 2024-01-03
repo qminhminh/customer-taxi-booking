@@ -15,6 +15,7 @@ class StarService {
     required BuildContext context,
     required double rating,
     required String idf,
+    required String tripID,
   }) async {
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
@@ -30,6 +31,7 @@ class StarService {
                   'userId': userProvider.user.id,
                   'rating': rating,
                   'idf': idf,
+                  'tripID': tripID,
                 },
               ));
 

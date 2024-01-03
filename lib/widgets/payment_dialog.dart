@@ -6,15 +6,18 @@ import 'package:customer_taxi_booking_app/methods/common_methods.dart';
 import 'package:customer_taxi_booking_app/features/star/screen/stars.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:pay/pay.dart';
 
 class PaymentDialog extends StatefulWidget {
   String fareAmount;
   String idf;
+  String tripID;
 
   PaymentDialog({
     super.key,
     required this.fareAmount,
     required this.idf,
+    required this.tripID,
   });
 
   @override
@@ -26,10 +29,19 @@ class _PaymentDialogState extends State<PaymentDialog> {
   final StarService starService = StarService();
   double avgRating = 0;
   double myRating = 0;
+  List<PaymentItem> paymentItems = [];
 
   @override
   void initState() {
     super.initState();
+
+    paymentItems.add(
+      PaymentItem(
+        amount: widget.fareAmount,
+        label: 'Total Amount',
+        status: PaymentItemStatus.final_price,
+      ),
+    );
   }
 
   @override
@@ -68,7 +80,10 @@ class _PaymentDialogState extends State<PaymentDialog> {
                   myRating = rating; // Update the state
                 });
                 starService.rateDriver(
-                    context: context, rating: rating, idf: widget.idf);
+                    context: context,
+                    rating: rating,
+                    idf: widget.idf,
+                    tripID: widget.tripID);
               },
             ),
             const SizedBox(
@@ -115,6 +130,20 @@ class _PaymentDialogState extends State<PaymentDialog> {
             ),
             ElevatedButton(
               onPressed: () {
+                // GooglePayButton(
+                //   onPressed: () => payPressed(address),
+                //   // ignore: deprecated_member_use
+                //   paymentConfigurationAsset: 'gpay.json',
+                //   onPaymentResult: (){},
+                //   paymentItems: paymentItems,
+                //   height: 50,
+                //   // style: GooglePayButtonStyle.black,
+                //   type: GooglePayButtonType.buy,
+                //   margin: const EdgeInsets.only(top: 15),
+                //   loadingIndicator: const Center(
+                //     child: CircularProgressIndicator(),
+                //   ),
+                // );
                 Navigator.pop(context, "paid");
               },
               style: ElevatedButton.styleFrom(

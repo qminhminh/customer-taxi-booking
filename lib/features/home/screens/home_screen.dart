@@ -608,6 +608,7 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (BuildContext context) => PaymentDialog(
                     fareAmount: fareAmount.toString(),
                     idf: idf,
+                    tripID: tripRequestRef!.key.toString(),
                   ));
 
           if (responseFromPayDialog == "paid") {
