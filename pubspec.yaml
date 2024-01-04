@@ -63,6 +63,7 @@ dependencies:
   flutter_rating_bar: ^4.0.1
   pay: ^1.1.2
   intl: ^0.18.1
+  network_info_plus: ^4.1.0
   
 
 dev_dependencies:
