@@ -50,19 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBuUR-yFefYoci-O80w-z-VXdrdPqC7WGE',
-    appId: '1:252719998470:android:7d4110430b0f9c7a504587',
-    messagingSenderId: '252719998470',
-    projectId: 'taxi-booking-acb4b',
-    storageBucket: 'taxi-booking-acb4b.appspot.com',
+    apiKey: 'AIzaSyB3Zty9o1jg33xOH6Y1itLaUYGIKMDkyQE',
+    appId: '1:576921542305:android:5f4599f17c1f60cbf99ae0',
+    messagingSenderId: '576921542305',
+    projectId: 'taxibooking-ffe59',
+    storageBucket: 'taxibooking-ffe59.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyC4vypPNAr3hsMPam_qbW81a7ECII81MGM',
-    appId: '1:252719998470:ios:73bee0e3dda8fdd5504587',
-    messagingSenderId: '252719998470',
-    projectId: 'taxi-booking-acb4b',
-    storageBucket: 'taxi-booking-acb4b.appspot.com',
+    apiKey: 'AIzaSyDs60ID12RbG345vVUqAquurZqWqP31RMk',
+    appId: '1:576921542305:ios:dd29c2d80d326b92f99ae0',
+    messagingSenderId: '576921542305',
+    projectId: 'taxibooking-ffe59',
+    storageBucket: 'taxibooking-ffe59.appspot.com',
     iosBundleId: 'com.example.customerTaxiBookingApp',
   );
 }

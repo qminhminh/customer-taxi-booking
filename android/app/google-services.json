@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "252719998470",
-    "project_id": "taxi-booking-acb4b",
-    "storage_bucket": "taxi-booking-acb4b.appspot.com"
+    "project_number": "576921542305",
+    "project_id": "taxibooking-ffe59",
+    "storage_bucket": "taxibooking-ffe59.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:252719998470:android:7d4110430b0f9c7a504587",
+        "mobilesdk_app_id": "1:576921542305:android:5f4599f17c1f60cbf99ae0",
         "android_client_info": {
           "package_name": "com.example.customer_taxi_booking_app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBuUR-yFefYoci-O80w-z-VXdrdPqC7WGE"
+          "current_key": "AIzaSyB3Zty9o1jg33xOH6Y1itLaUYGIKMDkyQE"
         }
       ],
       "services": {
